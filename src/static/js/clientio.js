@@ -6,16 +6,18 @@ let boxchat = $('#boxchat')
 let roomjoin = $('#roomjoin')
 let textroom = $('#textroom')
 let listrooms= $('#listrooms')
-let linkrooms = $('.linkrooms')
+let linkrooms = $('button')
 
-console.log(linkrooms.get(0));
+console.log(linkrooms);
 
 
 function render_message(data) {
-    console.log('test in render');
-
+    console.log(data);
+    if(data.room){
+        boxchat.append(`<span> ${data.room} </span>`)
+    }
     if (data.nickname === nickname)
-        boxchat.append(`<span> desde main me :  ${data.data} <span> <br>`)
+        boxchat.append(`<span> me :  ${data.data} <span> <br>`)
     else
        boxchat.append(`<span> ${data.nickname} :  ${data.data} <span> <br>`)
 
@@ -25,7 +27,7 @@ function render_rooms(rooms){
 
     let string_to_rooms = ``
     for(var i = 0; i < rooms.length; i++){
-        string_to_rooms += `<a href="javascript:void(0)" class="linkrooms"> ${rooms[i]} </a> <br>`
+        string_to_rooms += `<button class="buttonsrooms"> ${rooms[i]} </button> <br>`
     }
     console.log(string_to_rooms);
     
@@ -48,6 +50,10 @@ socket.on('connect', function () {
         })
         message.val('')
         
+    })
+
+    linkrooms.click(function(){
+        alert('click')
     })
     socket.on('message', data => {
         console.log(data);
