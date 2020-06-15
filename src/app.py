@@ -1,9 +1,10 @@
-from flask import Flask , render_template , url_for , request
+from flask import Flask , render_template , url_for , request , redirect , session
 from flask_socketio import SocketIO , emit, leave_room, join_room
 import json
 from utilities.utilities import is_room
-import sqlite3
+import sqlite3 as sql
 import os
+
 
 db_dir = os.path.join(os.getcwd(),'DB','users.db')
 print(db_dir)
@@ -17,12 +18,36 @@ socketio = SocketIO(app)
 rooms = []
 
 
+#test for register
+
+def list_users():
+    con = sql.connect("database.db")
+    con.row_factory = sql.Row
+    cur = con.cursor()
+    cur.execute("SELECT * FROM user")
+    rows = cur.fetchall()
+    for r in rows:
+        print ('user : ' , r['nickname'], r['pass'])
+
 @app.route('/register', methods = ['POST','GET'])
 def register():
     if request.method == 'POST':
-        nickname = request.form['nickname']
-        password = request.form['password']
-        print (nickname , password)
+        try:
+            nickname = request.form['nickname']
+            password = request.form['password']
+            with sql.connect("database.db") as con:
+                cursor = con.cursor()
+                cursor.execute("INSERT INTO user (nickname,pass) VALUES (?,?)", (nickname,password))
+                con.commit()
+                list_users()
+                return render_template('login.html')
+        except:
+            con.rollback()
+
+        
+        finally:
+            con.close()
+        
         return render_template('register.html')
     if request.method == 'GET':
         return render_template('register.html')
@@ -32,14 +57,51 @@ def register():
 
 
 
+@app.route('/login', methods = ['POST','GET'])
+def login():
+    if request.method == 'POST':
+        try:
+            nickname = request.form['nickname']
+            password = request.form['password']
+            con = sql.connect("database.db")
+            con.row_factory = sql.Row
+            cur = con.cursor()
+            cur.execute("SELECT * FROM user WHERE nickname = ? AND pass = ?", (nickname,password))
+            rows = cur.fetchall()
+            if rows:
+                session[nickname] = nickname
+                return  redirect(url_for('index', nickname=nickname))
+            return render_template('login.html')
+
+        except:
+            pass
+
+    if request.method == 'GET':
+        return render_template('login.html')
+
+
+
+
 @app.route('/index')
 def index():
     nickname = request.args.get('nickname')
+    if (session.get(nickname)):
+        return render_template('index.html')
+    return render_template('login.html')
+
     # if nickname in nicknames:
     #     return render_template('home.html')
     
-    return render_template('index.html')
     
+    
+
+@app.route('/logout')
+def logout():
+    nickname = request.args.get('nickname')
+    print(session)
+    session.pop(nickname)
+    print(session)
+    return render_template('login.html')
 
 @app.route('/home')
 def home():
