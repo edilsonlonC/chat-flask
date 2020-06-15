@@ -16,7 +16,7 @@ app.config['SECRET_KEY'] = 'dev'
 socketio = SocketIO(app)
 
 rooms = []
-
+clients = {}
 
 #test for register
 
@@ -61,6 +61,7 @@ def register():
 def login():
     if request.method == 'POST':
         try:
+            
             nickname = request.form['nickname']
             password = request.form['password']
             con = sql.connect("database.db")
@@ -140,7 +141,25 @@ def create_room():
 
 @socketio.on('connect')
 def connect ():
+    
     print ('client is connected')
+
+
+@socketio.on('private-room')
+def private_room(data):
+    clients[data.get('nickname')] = request.sid
+    print(clients)
+
+
+
+@socketio.on('private')
+def private(data):
+    receiver = data.get('receiver')
+    sid = clients.get('receiver')
+    if (sid):
+        socketio.emit('private' , data, room = clients.get(receiver))
+
+
 
 @socketio.on('join')
 def client_join_room(data):

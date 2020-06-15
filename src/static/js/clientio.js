@@ -71,7 +71,19 @@ socket.on('connect', function () {
         })
     })
 
-   
+   socket.emit('private',{
+       receiver : 'edilson2',
+       message : 'hola'
+   })
+
+   socket.emit('private-room', {
+       nickname
+   })
+
+   socket.on('private', data => {
+       console.log(data);
+       
+   })
 
     socket.on('joined', data => {
         console.log(data)
