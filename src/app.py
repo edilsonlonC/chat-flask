@@ -2,15 +2,37 @@ from flask import Flask , render_template , url_for , request
 from flask_socketio import SocketIO , emit, leave_room, join_room
 import json
 from utilities.utilities import is_room
+import sqlite3
+import os
 
+db_dir = os.path.join(os.getcwd(),'DB','users.db')
+print(db_dir)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev'
+
+
 
 socketio = SocketIO(app)
 
 rooms = []
 
-@app.route('/índex')
+
+@app.route('/register', methods = ['POST','GET'])
+def register():
+    if request.method == 'POST':
+        nickname = request.form['nickname']
+        password = request.form['password']
+        print (nickname , password)
+        return render_template('register.html')
+    if request.method == 'GET':
+        return render_template('register.html')
+
+
+
+
+
+
+@app.route('/index')
 def index():
     nickname = request.args.get('nickname')
     # if nickname in nicknames:
